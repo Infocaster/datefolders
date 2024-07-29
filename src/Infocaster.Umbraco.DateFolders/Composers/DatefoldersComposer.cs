@@ -242,7 +242,8 @@ namespace Infocaster.Umbraco.DateFolders.Composers
                             // Todo: Check if needed
                             if (content.Published)
                             {
-                                _contentService.SaveAndPublish(content);
+                        _contentService.Save(content);
+                        _contentService.Publish(content, ["*"]);
                             }
 
                             // Clean up old folders if empty
