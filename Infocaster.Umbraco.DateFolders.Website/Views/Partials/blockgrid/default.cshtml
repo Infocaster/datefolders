@@ -1,0 +1,11 @@
+﻿@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage;
+@using Umbraco.Cms.Core.Models.Blocks;
+@{
+    var blocks = Model.Value<IEnumerable<BlockListItem>>("blockgrid");
+    foreach (var block in blocks)
+    {
+        var content = block.Content;
+
+        @Html.Partial("blockgrid/components" + content.ContentType.Alias, block)
+    }
+}

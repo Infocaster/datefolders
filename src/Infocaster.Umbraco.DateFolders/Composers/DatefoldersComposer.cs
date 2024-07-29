@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
+using System.Threading;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Events;
@@ -329,10 +330,15 @@ namespace Infocaster.Umbraco.DateFolders.Composers
             // Create folder if if non exists
             if (content is null)
             {
-                content = _contentService.CreateContent(nodeName, parent.GetUdi(), _options.FolderDocType, currentUserId);
+                content = _contentService.Create(nodeName, parent.Key, _options.FolderDocType, currentUserId);
             }
 
-            if (!content.Published) contentService.SaveAndPublish(content, userId: currentUserId);
+            if (!content.Published)
+            {
+                contentService.Save(content, userId: currentUserId);
+                contentService.Publish(content, ["*"], userId: currentUserId); // TODO: 'Only wildcard culture is supported when publishing invariant content types. (Parameter 'cultures')'
+                //contentService.Publish(content, [Thread.CurrentThread.CurrentCulture.IetfLanguageTag], userId: currentUserId);
+            }
             return content;
         }
 
@@ -399,7 +405,7 @@ namespace Infocaster.Umbraco.DateFolders.Composers
             if (!_options.AllowedParentIds.Any() && !_options.AllowedParentDocTypes.Any()) return true;
 
             IContent parentContentItem = _contentService.GetAncestors(content).Reverse().FirstOrDefault(x => !x.ContentType.Alias.Equals(_options.FolderDocType));
-            if (_options.AllowedParentIds.Any() && _options.AllowedParentIds.Contains(parentContentItem.Id)) return true;
+            if (_options.AllowedParentIds.Any() && _options.AllowedParentIds.Contains(parentContentItem.Key.ToString())) return true;
             if (_options.AllowedParentDocTypes.Any() && _options.AllowedParentDocTypes.Contains(parentContentItem.ContentType.Alias)) return true;
 
             return false;

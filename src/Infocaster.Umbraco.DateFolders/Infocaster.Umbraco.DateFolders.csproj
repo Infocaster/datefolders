@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <ContentTargetFolders>.</ContentTargetFolders>
     <PackageId>Infocaster.Umbraco.DateFolders</PackageId>
@@ -12,7 +12,7 @@
     <Company>Infocaster B.V.</Company>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <RootNamespace>Infocaster.Umbraco.DateFolders</RootNamespace>
-    <Copyright>Infocaster B.V. 2022</Copyright>
+    <Copyright>Infocaster B.V. 2024</Copyright>
     <PackageProjectUrl>https://github.com/Infocaster/Datefolders</PackageProjectUrl>
     <PackageIcon>infocaster_nuget_yellow.png</PackageIcon>
     <PackageReadmeFile>README-NUGET.md</PackageReadmeFile>
@@ -38,6 +38,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Umbraco.Cms.Core" Version="11.0.0" />
+    <PackageReference Include="Umbraco.Cms.Core" Version="14.0.0" />
   </ItemGroup>
 </Project>
