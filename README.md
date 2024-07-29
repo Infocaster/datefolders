@@ -39,7 +39,7 @@ After installing the package, just complete the configuration steps below and yo
     "OrderByDescending": true,          
     "FolderDocType": "dateFolder",      
     "ItemDocTypes": [ "contentPage" ],
-    "AllowedParentIds": [ 2222 ],
+    "AllowedParentIds": [ "9E5C1E16-96CA-4DBD-A07A-9A806736FCBA" ],
     "AllowedParentDocTypes": ["blog"]
 }
 ```
@@ -49,12 +49,15 @@ After installing the package, just complete the configuration steps below and yo
 - **DateFolderDocType** | The doctype to use for creating the year/month/day folders. (e.g "DateFolder")
 - **CreateDayFolders** | Boolean indicating whether or not day folders should be created, if false only years and months are created.
 - **OrderByDecending** | Boolean indicating sort order for date folders (default: false)
-- **AllowedParentIds** | (Optional) The node id for the parent(s) to limit the creation of datefolders to. (e.g. 1234) - comma separated values are allowed for multiple note ids
+- **AllowedParentIds** | (Optional) The node key for the parent(s) to limit the creation of datefolders to. Comma separated values are allowed for multiple nodes
 - **AllowedParentDocTypes** | (Optional) The doctype alias for the parent(s) to limit the creation of datefolders to. (e.g. "blog") - comma separated values are allowed for multiple doctype aliases
 
 ## Changelog
+Version 14.0.0
+- Updated to use umbraco v14
+
 Version 11.0.0
-- Updated to use umbraco v11
+- Updated to use umbraco v11 - this version works on versions up to v14!
 
 Version 10.0.0
 - Updated to use umbraco v10.
