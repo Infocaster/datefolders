@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
-using System.Threading;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Events;
@@ -176,115 +175,113 @@ namespace Infocaster.Umbraco.DateFolders.Composers
                 if (!ParentValid(content)) continue;
 
                 IContentType folderDocType = _contentTypeService.Get(_options.FolderDocType);
-                if (folderDocType is not null)
-                {
-                    if (content.ParentId > 0)
-                    {
-                        var date = GetItemDate(content, _options.ItemDateProperty);
-                        IContent parent = _contentService.GetById(content.ParentId);
-
-                        IContent monthFolder = null;
-                        IContent yearFolder = null;
-                        IContent dayFolder = null;
-
-                        bool dayChanged = false;
-                        bool monthChanged;
-                        bool yearChanged;
-
-                        // Item already has datefolder as parent
-                        if (parent.ContentType.Alias.Equals(_options.FolderDocType))
-                        {
-                            monthFolder = parent;
-
-                            if (_options.CreateDayFolders)
-                            {
-                                dayFolder = parent;
-                                monthFolder = _contentService.GetById(dayFolder.ParentId);
-
-                                dayChanged = date.Day.ToString("00") != dayFolder.Name;
-                            }
-
-                            yearFolder = _contentService.GetById(monthFolder.ParentId);
-
-                            // Set item parent to source folder which contains the datefolders for sorting
-                            parent = _contentService.GetById(yearFolder.ParentId);
-
-                            yearChanged = date.Year.ToString() != yearFolder.Name;
-                            monthChanged = date.Month.ToString("00") != monthFolder.Name;
-                        }
-                        else
-                        {
-                            dayChanged = true;
-                            monthChanged = true;
-                            yearChanged = true;
-                        }
-
-                        if (yearChanged || monthChanged || dayChanged)
-                        {
-                            IContent newDayFolder = null;
-
-                            IContent newYearFolder = yearChanged || yearFolder is null ? GetOrCreateAndPublishDateFolder(_contentService, parent, date.Year.ToString(), content.CreatorId) : yearFolder;
-                            IContent newMonthFolder = GetOrCreateAndPublishDateFolder(_contentService, newYearFolder, date.Month.ToString("00"), content.CreatorId);
-                            IContent orderParent = newMonthFolder;
-
-                            // Move content to correct folder
-                            if (_options.CreateDayFolders)
-                            {
-                                newDayFolder = GetOrCreateAndPublishDateFolder(_contentService, newMonthFolder, date.Day.ToString("00"), content.CreatorId);
-                                _contentService.Move(content, newDayFolder.Id);
-                                orderParent = newDayFolder;
-                            }
-                            else
-                            {
-                                _contentService.Move(content, newMonthFolder.Id);
-                            }
-
-                            // Todo: Check if needed
-                            if (content.Published)
-                            {
-                        _contentService.Save(content);
-                        _contentService.Publish(content, ["*"]);
-                            }
-
-                            // Clean up old folders if empty
-                            if (dayFolder is not null)
-                            {
-                                ContentHelper.DeleteFolderIfEmpty(_options.FolderDocType, dayFolder, _contentService);
-                            }
-
-                            if (monthFolder is not null)
-                            {
-                                ContentHelper.DeleteFolderIfEmpty(_options.FolderDocType, monthFolder, _contentService);
-                            }
-
-                            if (yearFolder is not null)
-                            {
-                                ContentHelper.DeleteFolderIfEmpty(_options.FolderDocType, yearFolder, _contentService);
-                            }
-
-                            // Sort all content in folders by date
-                            OrderChildrenByDateProperty(orderParent, _options.OrderByDescending, !string.IsNullOrEmpty(_options.ItemDateProperty) ? _options.ItemDateProperty : null);
-
-                            // Sort all folders by name
-                            OrderChildrenByName(parent, _options.OrderByDescending);
-                            OrderChildrenByName(newYearFolder, _options.OrderByDescending);
-                            if (_options.CreateDayFolders)
-                            {
-                                OrderChildrenByName(newMonthFolder, _options.OrderByDescending);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        // Item is created under 'Content' root, which is unsupported
-                        _logger.LogError("Creating a date folder item under 'Content' root is unsupported");
-                    }
-                }
-                else
+                if (folderDocType is null)
                 {
                     // Date folder doctype is null
                     _logger.LogError("The date folder document type '{folderDocType}' does not exist", _options.FolderDocType);
+                    continue;
                 }
+
+                if (content.ParentId == default)
+                {
+                    // Item is created under 'Content' root, which is unsupported
+                    _logger.LogError("Creating a date folder item under 'Content' root is unsupported");
+                    continue;
+                }
+
+                var date = GetItemDate(content, _options.ItemDateProperty);
+                IContent parent = _contentService.GetById(content.ParentId);
+
+                IContent monthFolder = null;
+                IContent yearFolder = null;
+                IContent dayFolder = null;
+
+                bool dayChanged = false;
+                bool monthChanged;
+                bool yearChanged;
+
+                // Item already has datefolder as parent
+                if (parent.ContentType.Alias.Equals(_options.FolderDocType))
+                {
+                    monthFolder = parent;
+
+                    if (_options.CreateDayFolders)
+                    {
+                        dayFolder = parent;
+                        monthFolder = _contentService.GetById(dayFolder.ParentId);
+
+                        dayChanged = date.Day.ToString("00") != dayFolder.Name;
+                    }
+
+                    yearFolder = _contentService.GetById(monthFolder.ParentId);
+
+                    // Set item parent to source folder which contains the datefolders for sorting
+                    parent = _contentService.GetById(yearFolder.ParentId);
+
+                    yearChanged = date.Year.ToString() != yearFolder.Name;
+                    monthChanged = date.Month.ToString("00") != monthFolder.Name;
+                }
+                else
+                {
+                    dayChanged = true;
+                    monthChanged = true;
+                    yearChanged = true;
+                }
+
+                if (yearChanged || monthChanged || dayChanged)
+                {
+                    IContent newDayFolder = null;
+
+                    IContent newYearFolder = yearChanged || yearFolder is null ? GetOrCreateAndPublishDateFolder(_contentService, parent, date.Year.ToString(), content.CreatorId) : yearFolder;
+                    IContent newMonthFolder = GetOrCreateAndPublishDateFolder(_contentService, newYearFolder, date.Month.ToString("00"), content.CreatorId);
+                    IContent orderParent = newMonthFolder;
+
+                    // Move content to correct folder
+                    if (_options.CreateDayFolders)
+                    {
+                        newDayFolder = GetOrCreateAndPublishDateFolder(_contentService, newMonthFolder, date.Day.ToString("00"), content.CreatorId);
+                        _contentService.Move(content, newDayFolder.Id);
+                        orderParent = newDayFolder;
+                    }
+                    else
+                    {
+                        _contentService.Move(content, newMonthFolder.Id);
+                    }
+
+                    // Todo: Check if needed
+                    if (content.Published)
+                    {
+                        _contentService.Save(content);
+                        _contentService.Publish(content, ["*"]);
+                    }
+
+                    // Clean up old folders if empty
+                    if (dayFolder is not null)
+                    {
+                        ContentHelper.DeleteFolderIfEmpty(_options.FolderDocType, dayFolder, _contentService);
+                    }
+
+                    if (monthFolder is not null)
+                    {
+                        ContentHelper.DeleteFolderIfEmpty(_options.FolderDocType, monthFolder, _contentService);
+                    }
+
+                    if (yearFolder is not null)
+                    {
+                        ContentHelper.DeleteFolderIfEmpty(_options.FolderDocType, yearFolder, _contentService);
+                    }
+
+                    // Sort all content in folders by date
+                    OrderChildrenByDateProperty(orderParent, _options.OrderByDescending, !string.IsNullOrEmpty(_options.ItemDateProperty) ? _options.ItemDateProperty : null);
+
+                    // Sort all folders by name
+                    OrderChildrenByName(parent, _options.OrderByDescending);
+                    OrderChildrenByName(newYearFolder, _options.OrderByDescending);
+                    if (_options.CreateDayFolders)
+                    {
+                        OrderChildrenByName(newMonthFolder, _options.OrderByDescending);
+                    }
+                }                
             }
         }
 
