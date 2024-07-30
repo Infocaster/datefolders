@@ -16,7 +16,7 @@ A great use case for this is a website that shows articles or blog posts. With t
 
 ## Requirements
 This package creates DateFolders (year/month/day) for the Umbraco backoffice to help the Content Editor easily find pages.
-**for Umbraco 10 use version 10.0.x and above!**
+**Version 10 supports up to Umbraco 14** 
 
 For Umbraco 8 please use 3.0.x. For umbraco 7 use v2 and older versions please use v1.4, these can be retrieved from [Our.Umbraco](https://our.umbraco.com/packages/developer-tools/datefolders/) <br> <br>
 
